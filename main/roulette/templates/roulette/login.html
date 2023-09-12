@@ -1,0 +1,17 @@
+{% extends 'roulette/base.html' %}
+{% load static %}
+{% block content %}
+<main class="flex-shrink-0">
+    <div class="container">
+        <form method="post">
+            {% csrf_token %}
+            <div>{{ form.non_field_errors }}</div>
+            {% for f in form %}
+            <p><label>{{f.label}}: </label>{{ f }}</p>
+            <div class="form-error">{{ f.errors }}</div>
+            {% endfor %}
+            <button class="w-10 btn btn-primary btn-lg">Войти</button>
+        </form>
+    </div>
+    </main>
+{% endblock %}

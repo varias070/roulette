@@ -1,0 +1,102 @@
+{% extends 'roulette/base.html' %}
+{% load static %}
+{% block content %}
+<main class="flex-shrink-0">
+    <div class="container">
+        <p class="lead">
+            {% if request.user.is_authenticated %}
+                <h1 class="mt-5">Приятной игры</h1>
+                <button class="w-10 btn btn-primary btn-lg" id="button-twirl" onclick="getCells()" style="display: none">Крутить</button>
+                <button class="w-10 btn btn-primary btn-lg" id="button-start" onclick="start()" >Начать игру</button>
+                <button class="w-10 btn btn-primary btn-lg" id="button-search" onclick="getStatistic()" >Показать статистику</button>
+                <p class="mb-auto" id="getCells-result" style="display: none"></p>
+                <p class="mb-auto" id="roulette_participant" style="display: none"></p>
+                <p class="mb-auto" id="most_active_users" style="display: none"></p>
+            {% else %}
+                <h>Для возможности играть в рулетку нужно зарегистрироваться или войти</h>
+            {% endif %}
+        </p>
+  </div>
+</main>
+<script>
+    let startResult = false
+
+    async function start(){
+        let startButton = document.getElementById('button-start')
+        let twirlButton = document.getElementById('button-twirl')
+        let text = document.getElementById("getCells-result")
+        let csrftoken = document.cookie.split("=")[1]
+
+        let data = new FormData()
+
+        twirlButton.style.display="flex"
+        startButton.style.display="none"
+        text.style.display="flex"
+
+        let response = await fetch("http://127.0.0.1:8000/start/", {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": csrftoken,
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: data,
+            credentials: 'same-origin',
+        })
+        startResult = await response.json()
+        console.log(startResult)
+    }
+
+    async function getCells(){
+        let text = document.getElementById("getCells-result")
+        let csrftoken = document.cookie.split("=")[1]
+
+        let response = await fetch("http://127.0.0.1:8000/twist/", {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": csrftoken,
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(startResult),
+            credentials: 'same-origin',
+        })
+        let result = await response.json()
+        console.log(result)
+
+        text.textContent = "ваш результат " + result.cell_title
+
+        if(result.cell_title === "jackpot" || result.is_actual === false){
+            document.getElementById('button-twirl').style.display="none"
+            document.getElementById('button-start').style.display="flex"
+        }
+    }
+
+    async function getStatistic(){
+            let area_displaying_games = document.getElementById("roulette_participant")
+            let area_displaying_users = document.getElementById("most_active_users")
+            let csrftoken = document.cookie.split("=")[1]
+
+            let response = await fetch("http://127.0.0.1:8000/search/", {
+            method: 'Get',
+            headers: {
+                "X-CSRFToken": csrftoken,
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            credentials: 'same-origin',
+        })
+        let result = await response.json()
+
+        area_displaying_games.textContent = "игры и количество участников"
+        for(let r of result.roulette_participant){
+            area_displaying_games.textContent += ` ${r.number_game} - ${r.users} &&`
+        }
+        area_displaying_games.style.display="flex"
+
+        area_displaying_users.textContent = "айди пользователя - количество раундов рулетке, в которыx он участвовал - среднее количество прокручиваний рулетки за раунд"
+        for(let user of result.most_active_users){
+            area_displaying_users.textContent += ` ${user.id} - ${user.member_game} - ${user.avg_count_scrolling} &&`
+        }
+        area_displaying_users.style.display="flex"
+    }
+
+</script>
+{% endblock %}

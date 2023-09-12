@@ -1,0 +1,13 @@
+{% extends 'roulette/base.html' %}
+{% load static %}
+{% block content %}
+<main class="flex-shrink-0">
+    <div class="container">
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="w-10 btn btn-primary btn-lg" type="submit">Регистрация</button>
+        </form>
+    </div>
+</main>
+{% endblock %}
