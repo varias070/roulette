@@ -1,0 +1,45 @@
+services:
+  nginx:
+    restart: always
+    build: ./nginx/
+    ports:
+      - "8080:8080"
+    volumes:
+      - web-static:/www/static
+    links:
+      - web:web
+
+  postgres:
+    restart: always
+    image: postgres:latest
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      DATABASE: $DATABASE
+      USER: $USER
+      PASSWORD: $PASSWORD
+    ports:
+      - "54320:54320"
+    volumes:
+      - pgdata:/home/project
+
+  web:
+    depends_on:
+      - postgres
+    restart: always
+    build: ./main
+    expose:
+      - "8000:8000"
+    links:
+      - postgres:postgres
+    volumes:
+      - web-django:/usr/src/app
+      - web-static:/usr/src/app/static
+    env_file: ./main/main/.env
+    environment:
+      DEBUG: 'true'
+    command: python manage.py runserver 0.0.0.0:8000
+
+volumes:
+  web-django:
+  web-static:
+  pgdata:
