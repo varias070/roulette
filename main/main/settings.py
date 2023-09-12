@@ -63,7 +63,7 @@ DATABASES = {
         'NAME': os.getenv("NAME"),
         'USER': os.getenv("USER"),
         'PASSWORD': os.getenv("PASSWORD"),
-        'HOST': 'postgres',
+        'HOST': os.getenv("HOST"),  # 'postgres'
         'PORT': os.getenv("PORT")
     }
 }
